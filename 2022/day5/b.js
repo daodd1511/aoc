@@ -1,10 +1,6 @@
 const fs = require("fs");
 fs.readFile("./input.txt", "utf8", (err, data) => {
   const exampleStack = [["Z", "N"], ["M", "C", "D"], ["P"]];
-  const testStack=[
-    ['d','c', 'b', 'a'],
-    ['e', 'f'],
-  ]
   const stack = [
     ["H", "T", "Z", "D"],
     ["Q", "R", "W", "T", "G", "C", "S"],
