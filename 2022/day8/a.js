@@ -5,15 +5,16 @@ fs.readFile("./input.txt", "utf8", (err, data) => {
 
 const solve = (data) => {
   const input = to2DArray(data);
-  const visiblePositions = [];
-
-  //   Remove comment below to see the result of part 1
-  //   setVisibleRearPositions(input, visiblePositions);
-  setVisibleInteriorPositions(input, visiblePositions);
+  part1(input);
+  part2(input);
 };
 
-const to2DArray = (input) => {
-  return input.split("\n").map((row) => row.split(""));
+// Part 1
+const part1 = (input) => {
+  const visiblePositions = [];
+  setVisibleRearPositions(input, visiblePositions);
+  setVisibleInteriorPositions(input, visiblePositions);
+  console.log("Part 1:", visiblePositions.length);
 };
 
 const setVisibleRearPositions = (input, visiblePos) => {
@@ -32,27 +33,11 @@ const setVisibleRearPositions = (input, visiblePos) => {
 };
 
 const setVisibleInteriorPositions = (input, visiblePos) => {
-  // Part 2 variable. This is the highest point possible from a visible position
-  let maxScenicPoint = 0;
   for (let i = 1; i < input.length - 1; i++) {
     for (let j = 1; j < input[i].length - 1; j++) {
       const currentValue = input[i][j];
-      const topValues = input
-        .map((row, index) => {
-          if (index < i) {
-            return row[j];
-          }
-        })
-        .filter((val) => val !== undefined);
-      const bottomValues = input
-        .map((row, index) => {
-          if (index > i) {
-            return row[j];
-          }
-        })
-        .filter((val) => val !== undefined);
-      const leftValues = input[i].filter((val, index) => index < j);
-      const rightValues = input[i].filter((val, index) => index > j);
+      const { topValues, bottomValues, leftValues, rightValues } =
+        getDirectionValues(input, i, j);
       const isVisible =
         currentValue > Math.max(...topValues) ||
         currentValue > Math.max(...bottomValues) ||
@@ -60,44 +45,69 @@ const setVisibleInteriorPositions = (input, visiblePos) => {
         currentValue > Math.max(...rightValues);
       if (isVisible) {
         visiblePos.push([i, j]);
-        // Part 2
-        let topStep = 0,
-          bottomStep = 0,
-          leftStep = 0,
-          rightStep = 0;
-        // Reverse top and left to start from current position to the top and left rear.
-        topValues.reverse().every((val) => {
-            topStep++
-            if(val < currentValue) {
-                return true;
-            }
-            return false;
-        });
-        bottomValues.every((val) => {
-            bottomStep++
-            if(val < currentValue) {
-                return true;
-            }
-            return false;
-        });
-        leftValues.reverse().every((val) => {
-            leftStep++
-            if(val < currentValue) {
-                return true;
-            }
-            return false;
-        });
-        rightValues.every((val) => {
-            rightStep++
-            if(val < currentValue) {
-                return true;
-            }
-            return false;
-        });
-        const scenicPoint = topStep * bottomStep * leftStep * rightStep;
-        maxScenicPoint = Math.max(scenicPoint, maxScenicPoint);
       }
     }
   }
-  console.log(maxScenicPoint);
+};
+
+// Part 2
+const part2 = (input) => {
+  const visiblePositions = [];
+  let maxScenicPoint = 0;
+  setVisibleInteriorPositions(input, visiblePositions);
+  visiblePositions.forEach(([i, j]) => {
+    const scenicPoint = getScenicPoint(input, i, j);
+    maxScenicPoint = Math.max(scenicPoint, maxScenicPoint);
+  });
+  console.log("Part 2:", maxScenicPoint);
+};
+
+const getScenicPoint = (input, i, j) => {
+  const currentValue = input[i][j];
+  const { topValues, bottomValues, leftValues, rightValues } =
+    getDirectionValues(input, i, j);
+  let scenicPoint = 1;
+  const values = [
+    topValues.reverse(),
+    bottomValues,
+    leftValues.reverse(),
+    rightValues,
+  ];
+  values.forEach((val) => {
+    let step = 0;
+    val.every((v) => {
+      step++;
+      if (v < currentValue) {
+        return true;
+      }
+      return false;
+    });
+    scenicPoint *= step;
+  });
+  return scenicPoint;
+};
+
+// Utils
+const to2DArray = (input) => {
+  return input.split("\n").map((row) => row.split(""));
+};
+
+const getDirectionValues = (input, i, j) => {
+  const topValues = input
+    .map((row, index) => {
+      if (index < i) {
+        return row[j];
+      }
+    })
+    .filter((val) => val !== undefined);
+  const bottomValues = input
+    .map((row, index) => {
+      if (index > i) {
+        return row[j];
+      }
+    })
+    .filter((val) => val !== undefined);
+  const leftValues = input[i].filter((val, index) => index < j);
+  const rightValues = input[i].filter((val, index) => index > j);
+  return { topValues, bottomValues, leftValues, rightValues };
 };
