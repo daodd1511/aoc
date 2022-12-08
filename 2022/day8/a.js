@@ -5,34 +5,34 @@ fs.readFile("./input.txt", "utf8", (err, data) => {
 
 const solve = (data) => {
   const input = to2DArray(data);
-  part1(input);
-  part2(input);
+  console.log(part1(input)+"\n",part2(input));
+  fs.writeFileSync("./output.txt", part1(input) + "\n" +  part2(input));
 };
 
 // Part 1
 const part1 = (input) => {
   const visiblePositions = [];
-  setVisibleRearPositions(input, visiblePositions);
+  setVisibleEdgePositions(input, visiblePositions);
   setVisibleInteriorPositions(input, visiblePositions);
-  console.log("Part 1:", visiblePositions.length);
+  return "Part 1: " + visiblePositions.length;
 };
 
-const setVisibleRearPositions = (input, visiblePos) => {
+const setVisibleEdgePositions = (input, visiblePositions) => {
   for (let i = 0; i < input.length; i++) {
     for (let j = 0; j < input[i].length; j++) {
-      const isRearPosition =
+      const isEdgePosition =
         i === 0 ||
         j === 0 ||
         i === input.length - 1 ||
         j === input[i].length - 1;
-      if (isRearPosition) {
-        visiblePos.push([i, j]);
+      if (isEdgePosition) {
+        visiblePositions.push([i, j]);
       }
     }
   }
 };
 
-const setVisibleInteriorPositions = (input, visiblePos) => {
+const setVisibleInteriorPositions = (input, visiblePositions) => {
   for (let i = 1; i < input.length - 1; i++) {
     for (let j = 1; j < input[i].length - 1; j++) {
       const currentValue = input[i][j];
@@ -44,7 +44,7 @@ const setVisibleInteriorPositions = (input, visiblePos) => {
         currentValue > Math.max(...leftValues) ||
         currentValue > Math.max(...rightValues);
       if (isVisible) {
-        visiblePos.push([i, j]);
+        visiblePositions.push([i, j]);
       }
     }
   }
@@ -59,7 +59,7 @@ const part2 = (input) => {
     const scenicPoint = getScenicPoint(input, i, j);
     maxScenicPoint = Math.max(scenicPoint, maxScenicPoint);
   });
-  console.log("Part 2:", maxScenicPoint);
+  return "Part 2: " + maxScenicPoint;
 };
 
 const getScenicPoint = (input, i, j) => {
