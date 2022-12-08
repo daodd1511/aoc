@@ -6,9 +6,10 @@ fs.readFile("./input.txt", "utf8", (err, data) => {
 const solve = (data) => {
   const input = to2DArray(data);
   const visiblePositions = [];
-  setVisibleRearPositions(input, visiblePositions);
+
+  //   Remove comment below to see the result of part 1
+  //   setVisibleRearPositions(input, visiblePositions);
   setVisibleInteriorPositions(input, visiblePositions);
-  console.log(visiblePositions.length);
 };
 
 const to2DArray = (input) => {
@@ -31,6 +32,8 @@ const setVisibleRearPositions = (input, visiblePos) => {
 };
 
 const setVisibleInteriorPositions = (input, visiblePos) => {
+  // Part 2 variable. This is the highest point possible from a visible position
+  let maxScenicPoint = 0;
   for (let i = 1; i < input.length - 1; i++) {
     for (let j = 1; j < input[i].length - 1; j++) {
       const currentValue = input[i][j];
@@ -57,7 +60,44 @@ const setVisibleInteriorPositions = (input, visiblePos) => {
         currentValue > Math.max(...rightValues);
       if (isVisible) {
         visiblePos.push([i, j]);
+        // Part 2
+        let topStep = 0,
+          bottomStep = 0,
+          leftStep = 0,
+          rightStep = 0;
+        // Reverse top and left to start from current position to the top and left rear.
+        topValues.reverse().every((val) => {
+            topStep++
+            if(val < currentValue) {
+                return true;
+            }
+            return false;
+        });
+        bottomValues.every((val) => {
+            bottomStep++
+            if(val < currentValue) {
+                return true;
+            }
+            return false;
+        });
+        leftValues.reverse().every((val) => {
+            leftStep++
+            if(val < currentValue) {
+                return true;
+            }
+            return false;
+        });
+        rightValues.every((val) => {
+            rightStep++
+            if(val < currentValue) {
+                return true;
+            }
+            return false;
+        });
+        const scenicPoint = topStep * bottomStep * leftStep * rightStep;
+        maxScenicPoint = Math.max(scenicPoint, maxScenicPoint);
       }
     }
   }
+  console.log(maxScenicPoint);
 };
