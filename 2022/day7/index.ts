@@ -1,7 +1,13 @@
-const fs = require("fs");
-const util = require("util");
+import { readFileSync, writeFileSync } from "fs";
+import util from "util";
+
 class FileNode {
-  constructor(name) {
+  name: string;
+  children: FileNode[];
+  parent: FileNode | null;
+  path: string;
+  size: number;
+  constructor(name: string) {
     this.name = name;
     this.children = [];
     this.parent = null;
@@ -10,16 +16,17 @@ class FileNode {
   }
 }
 
-// Class file system with command
 class FileSystem {
+  fileSystem: FileNode;
+  currentDir: FileNode;
   constructor() {
     this.fileSystem = new FileNode("/");
     this.currentDir = { ...this.fileSystem };
   }
 
   // Change directory
-  cd(path) {
-    if (path === "..") {
+  cd(path: string) {
+    if (path === ".." && this.currentDir.parent) {
       this.currentDir = this.currentDir.parent;
       return;
     }
@@ -30,7 +37,7 @@ class FileSystem {
   }
 
   // Create directory
-  mkdir(path) {
+  mkdir(path: string) {
     const child = this.currentDir.children.find((child) => child.name === path);
     if (!child) {
       const newDir = new FileNode(path);
@@ -41,7 +48,7 @@ class FileSystem {
   }
 
   // Create file
-  touch(size, path) {
+  touch(size: string, path: string) {
     const child = this.currentDir.children.find((child) => child.name === path);
     if (!child) {
       const newFile = new FileNode(path);
@@ -74,7 +81,7 @@ class FileSystem {
   }
 }
 
-const buildFileSystem = (input) => {
+const buildFileSystem = (input: string[]) => {
   const fileSystem = new FileSystem();
   input.forEach((line) => {
     const command = line.split(" ");
@@ -96,7 +103,10 @@ const buildFileSystem = (input) => {
   return fileSystem;
 };
 
-const getDirectoriesSize = (node, sizesHolder = []) => {
+const getDirectoriesSize = (
+  node: FileNode,
+  sizesHolder: number[] = []
+): number => {
   if (node instanceof FileNode && node.children.length === 0) {
     return node.size;
   }
@@ -109,22 +119,31 @@ const getDirectoriesSize = (node, sizesHolder = []) => {
   return size;
 };
 
-fs.readFile("./input.txt", "utf8", (err, data) => {
-    const TOTAL_SIZE = 70_000_000;
-    const REQUIRED_SIZE = 30_000_000;
-    const input = data.split("\n");
-    const root = buildFileSystem(input).getRoot();
-    const sizes = [];
-    const rootSize = getDirectoriesSize(root, sizes);
-    const smallDir = sizes.filter((dir) => dir < 100000);
+const solve = (input: string) => {
+  const TOTAL_SIZE = 70_000_000;
+  const REQUIRED_SIZE = 30_000_000;
+  const data = input.split("\n");
+  const root = buildFileSystem(data).getRoot();
+  const sizes: number[] = [];
+  const rootSize = getDirectoriesSize(root, sizes);
+  
+  // Part 1
+  const smallDir = sizes.filter((dir) => dir < 100000);
+  const p1Result = smallDir.reduce((sum, size) => sum + size, 0);
+  console.log("Part 1: " + p1Result);
 
-    // Part 1
-    const p1Result = smallDir.reduce((sum, size) => sum + size, 0)
-    console.log("Part 1: " + p1Result);
+  // Part 2
+  const unusedSize = TOTAL_SIZE - rootSize;
+  const satisfiedDir = sizes.filter(
+    (size) => size + unusedSize >= REQUIRED_SIZE
+  );
+  const p2Result = Math.min(...satisfiedDir);
+  console.log("Part 2: " + p2Result);
 
-    // Part 2
-    const unusedSize = TOTAL_SIZE - rootSize;
-    const satisfiedDir = sizes.filter((size) => (size + unusedSize) >= REQUIRED_SIZE);
-    const p2Result = Math.min(...satisfiedDir);
-    console.log("Part 2: " + p2Result);
-  });
+  // Export result
+  writeFileSync("./output.txt", 'Part 1: ' + p1Result + '\n'+ 'Part 2: ' + p2Result);
+};
+
+const exampleInput = readFileSync("./exampleInput.txt", "utf-8");
+const input = readFileSync("./input.txt", "utf-8");
+solve(input);
