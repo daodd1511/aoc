@@ -21,6 +21,7 @@ func main() {
 
 	grid := convertToGrid(input)
 	part1(grid)
+	part2(grid)
 }
 
 func part1(grid [][]string) {
@@ -49,6 +50,51 @@ func part1(grid [][]string) {
 	}
 
 	fmt.Println("Part 1: ", count)
+}
+
+func part2(grid [][]string) {
+	count := 0
+	mAndSPos1 := [][]int{{-1, -1}, {1, 1}}
+	mAndSPos2 := [][]int{{-1, 1}, {1, -1}}
+	for i := 0; i < len(grid); i++ {
+		for j := 0; j < len(grid[i]); j++ {
+			if grid[i][j] == "A" {
+				isPos1Valid := false
+				isPos2Valid := false
+
+				pos1Value1Row := i + mAndSPos1[0][0]
+				pos1Value1Col := j + mAndSPos1[0][1]
+				pos1Value2Row := i + mAndSPos1[1][0]
+				pos1Value2Col := j + mAndSPos1[1][1]
+				pos2Value1Row := i + mAndSPos2[0][0]
+				pos2Value1Col := j + mAndSPos2[0][1]
+				pos2Value2Row := i + mAndSPos2[1][0]
+				pos2Value2Col := j + mAndSPos2[1][1]
+
+				if validPosition(grid, pos1Value1Row, pos1Value1Col) && validPosition(grid, pos1Value2Row, pos1Value2Col) {
+					pos1Value1 := grid[pos1Value1Row][pos1Value1Col]
+					pos1Value2 := grid[pos1Value2Row][pos1Value2Col]
+					if pos1Value1 == "M" && pos1Value2 == "S" || pos1Value1 == "S" && pos1Value2 == "M" {
+						isPos1Valid = true
+					}
+				}
+
+				if validPosition(grid, pos2Value1Row, pos2Value1Col) && validPosition(grid, pos2Value2Row, pos2Value2Col) {
+					pos2Value1 := grid[pos2Value1Row][pos2Value1Col]
+					pos2Value2 := grid[pos2Value2Row][pos2Value2Col]
+					if pos2Value1 == "M" && pos2Value2 == "S" || pos2Value1 == "S" && pos2Value2 == "M" {
+						isPos2Valid = true
+					}
+				}
+
+				if isPos1Valid && isPos2Valid {
+					count++
+				}
+			}
+		}
+	}
+
+	fmt.Println("Part 2: ", count)
 }
 
 func validPosition(grid [][]string, row, col int) bool {
