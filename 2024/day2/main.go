@@ -70,42 +70,29 @@ func isSafeReportWithOneBadReport(reports []string) bool {
 	isIncreasingReports := lastReport > firstReport
 	var minimumDifference float64 = 1
 	var maximumDifference float64 = 3
-	var badReportIndexes []int
+	var hasBadReport bool
 
 	for i := 0; i < len(reports)-1; i++ {
 		num1, _ := strconv.ParseFloat(reports[i], 64)
 		num2, _ := strconv.ParseFloat(reports[i+1], 64)
-		if isIncreasingReports && num2 < num1 {
-			badReportIndexes = append(badReportIndexes, i+1)
-		}
-
-		if !isIncreasingReports && num2 > num1 {
-			badReportIndexes = append(badReportIndexes, i)
-		}
-
 		difference := math.Abs(num2 - num1)
-		if difference < minimumDifference || difference > maximumDifference {
-			badReportIndexes = append(badReportIndexes, i, i+1)
+		if (isIncreasingReports && num2 < num1) || (!isIncreasingReports && num2 > num1) || difference < minimumDifference || difference > maximumDifference {
+			hasBadReport = true
 		}
 	}
 
-	if len(badReportIndexes) == 0 {
+	if !hasBadReport {
 		return true
 	}
 
-	hasSafeReport := false
-	for i := 0; i < len(badReportIndexes); i++ {
-		fmt.Println("Old reports: ", reports)
-		fmt.Println("Index: ", badReportIndexes[i])
+	var hasSafeReport bool
+	for i := 0; i < len(reports); i++ {
 		reportsCopy := make([]string, len(reports))
 		copy(reportsCopy, reports)
-		reportsCopy = append(reportsCopy[:badReportIndexes[i]], reportsCopy[badReportIndexes[i]+1:]...)
-		fmt.Println("New reports: ", reportsCopy)
-		fmt.Println("Is safe report: ", isSafeReport(reportsCopy))
-		fmt.Println("\n")
+		reportsCopy = append(reportsCopy[:i], reportsCopy[i+1:]...)
+
 		if isSafeReport(reportsCopy) {
 			hasSafeReport = true
-			break
 		}
 	}
 
