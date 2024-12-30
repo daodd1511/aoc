@@ -10,6 +10,11 @@ import (
 )
 
 func main() {
+	part1()
+	part2()
+}
+
+func getLeftAndRight() (left, right []string) {
 	input, err := fileUtils.ReadFileAsLines("./input.txt")
 	var leftList []string
 	var rightList []string
@@ -24,9 +29,13 @@ func main() {
 		rightList = append(rightList, splitted[1])
 	}
 
+	return leftList, rightList
+}
+
+func part1() {
+	leftList, rightList := getLeftAndRight()
 	sort.Strings(leftList)
 	sort.Strings(rightList)
-
 	var totalDistance float64
 	for i := 0; i < len(leftList); i++ {
 		left, _ := strconv.ParseFloat(leftList[i], 64)
@@ -35,5 +44,24 @@ func main() {
 		totalDistance += math.Abs(left - right)
 	}
 
-	fmt.Println(totalDistance)
+	fmt.Println("Part 1: ", totalDistance)
+}
+
+func part2() {
+	leftList, rightList := getLeftAndRight()
+	var similarity float64
+	for i := 0; i < len(leftList); i++ {
+		matches := 0
+		left, _ := strconv.ParseFloat(leftList[i], 64)
+		for j := 0; j < len(rightList); j++ {
+			if leftList[i] == rightList[j] {
+				matches++
+			}
+		}
+
+		if matches > 0 {
+			similarity += left * float64(matches)
+		}
+	}
+	fmt.Println("Part 2: ", similarity)
 }
