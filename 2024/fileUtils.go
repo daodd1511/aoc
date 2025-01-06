@@ -3,6 +3,7 @@ package fileUtils
 import (
 	"bufio"
 	"os"
+	"strings"
 )
 
 func ReadFileAsLines(filePath string) ([]string, error) {
@@ -25,4 +26,23 @@ func ReadFileAsLines(filePath string) ([]string, error) {
 	}
 
 	return lines, nil
+}
+
+func ExportFile(filePath string, lines [][]string) error {
+	file, err := os.Create(filePath)
+
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	for _, line := range lines {
+		_, err := file.WriteString(strings.Join(line, "") + "\n")
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
