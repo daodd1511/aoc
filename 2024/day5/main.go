@@ -15,6 +15,7 @@ func main() {
 	}
 
 	part1(string(input))
+	part2(string(input))
 }
 
 type Rule struct {
@@ -24,8 +25,81 @@ type Rule struct {
 
 func part1(input string) {
 	splitted := strings.Split(string(input), "\n\n")
-	rules := splitted[0]
+	rulesMap := getRulesMap(splitted[0])
 	updates := strings.Split(splitted[1], "\n")
+
+	var result int
+
+	for i := 0; i < len(updates); i++ {
+		updateRow := strings.Split(updates[i], ",")
+		isBreakRule := false
+
+		for j := 0; j < len(updateRow)-1; j++ {
+			current, _ := strconv.Atoi(updateRow[j])
+			for k := j + 1; k < len(updateRow); k++ {
+				compareVal, _ := strconv.Atoi(updateRow[k])
+				if rule, ok := rulesMap[current]; ok {
+					for _, ahead := range rule.ahead {
+						if ahead == compareVal {
+							isBreakRule = true
+							continue
+						}
+					}
+				}
+			}
+		}
+		if !isBreakRule {
+			middleVal, _ := strconv.Atoi(updateRow[len(updateRow)/2])
+			result += middleVal
+		}
+	}
+	fmt.Println("Part 1: ", result)
+}
+
+func part2(input string) {
+	splitted := strings.Split(string(input), "\n\n")
+	rulesMap := getRulesMap(splitted[0])
+	updates := strings.Split(splitted[1], "\n")
+
+	updatesBreakRules := []int{}
+
+	var result int
+
+	for i := 0; i < len(updates); i++ {
+		updateRow := strings.Split(updates[i], ",")
+
+		for j := 0; j < len(updateRow); j++ {
+			current, _ := strconv.Atoi(updateRow[j])
+		out:
+			for k := j + 1; k < len(updateRow); k++ {
+				compareVal, _ := strconv.Atoi(updateRow[k])
+				if rule, ok := rulesMap[current]; ok {
+					for _, ahead := range rule.ahead {
+						if ahead == compareVal {
+							if !contains(updatesBreakRules, i) {
+								updatesBreakRules = append(updatesBreakRules, i)
+							}
+							updateRow[j], updateRow[k] = updateRow[k], updateRow[j]
+							updates[i] = strings.Join(updateRow, ",")
+							j = -1
+							break out
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for i := 0; i < len(updatesBreakRules); i++ {
+		fmt.Println(updates[updatesBreakRules[i]])
+		updateRow := strings.Split(updates[updatesBreakRules[i]], ",")
+		middleVal, _ := strconv.Atoi(updateRow[len(updateRow)/2])
+		result += middleVal
+	}
+	fmt.Println("Part 2: ", result)
+}
+
+func getRulesMap(rules string) map[int]Rule {
 	rulesMap := make(map[int]Rule)
 	splittedRules := strings.Split(rules, "\n")
 
@@ -57,30 +131,14 @@ func part1(input string) {
 		}
 	}
 
-	var result int
+	return rulesMap
+}
 
-	for i := 0; i < len(updates); i++ {
-		updateRow := strings.Split(updates[i], ",")
-		isBreakRule := false
-
-		for j := 0; j < len(updateRow)-1; j++ {
-			current, _ := strconv.Atoi(updateRow[j])
-			for k := j + 1; k < len(updateRow); k++ {
-				compareVal, _ := strconv.Atoi(updateRow[k])
-				if rule, ok := rulesMap[current]; ok {
-					for _, ahead := range rule.ahead {
-						if ahead == compareVal {
-							isBreakRule = true
-							continue
-						}
-					}
-				}
-			}
-		}
-		if !isBreakRule {
-			middleVal, _ := strconv.Atoi(updateRow[len(updateRow)/2])
-			result += middleVal
+func contains[T comparable](slice []T, value T) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
 		}
 	}
-	fmt.Println("Part 1: ", result)
+	return false
 }
