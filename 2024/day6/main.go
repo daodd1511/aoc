@@ -7,14 +7,16 @@ import (
 )
 
 func main() {
-	input, err := fileUtils.ReadFileAsLines("./input.txt")
-
+	// input, err := fileUtils.ReadFileAsLines("./input.txt")
+	example, err := fileUtils.ReadFileAsLines("./example.txt")
 	if err != nil {
 		fmt.Println("Error reading file:", err)
 		return
 	}
 
-	part1(input)
+	// part1(input)
+	// part1(example)
+	part2(example)
 }
 
 type Direction string
@@ -30,6 +32,11 @@ type GuardLocation struct {
 	row       int
 	col       int
 	direction Direction
+}
+
+type Location struct {
+	row int
+	col int
 }
 
 func part1(input []string) {
@@ -51,7 +58,6 @@ func part1(input []string) {
 	nextStep := guardLocation
 	key := strconv.Itoa(nextStep.row) + "," + strconv.Itoa(nextStep.col)
 	visited := map[string]bool{key: true}
-
 	for nextStep.row < len(mapArea)-1 && nextStep.row > 0 && nextStep.col > 0 && nextStep.col < len(mapArea[0])-1 {
 		nextStep = getNextStep(mapArea, nextStep)
 		key := strconv.Itoa(nextStep.row) + "," + strconv.Itoa(nextStep.col)
@@ -61,7 +67,125 @@ func part1(input []string) {
 		}
 	}
 
-	fmt.Println("Part 1: ", len(visited))
+	fmt.Println("Part 1: ", len(visited), visited)
+	fileUtils.ExportFile("./output.txt", mapArea)
+}
+
+func part2(input []string) {
+	mapArea := convertToGrid(input)
+	var obstacles []Location
+	var guardLocation GuardLocation
+
+	for i := 0; i < len(mapArea); i++ {
+		for j := 0; j < len(mapArea[i]); j++ {
+			if mapArea[i][j] == "^" {
+				guardLocation = GuardLocation{
+					row:       i,
+					col:       j,
+					direction: Up,
+				}
+			}
+
+			if mapArea[i][j] == "#" {
+				obstacles = append(obstacles, Location{
+					row: i,
+					col: j,
+				})
+			}
+		}
+	}
+
+	nextStep := guardLocation
+	key := strconv.Itoa(nextStep.row) + "," + strconv.Itoa(nextStep.col)
+	visited := map[string]bool{key: true}
+	count := 0
+	for nextStep.row < len(mapArea)-1 && nextStep.row > 0 && nextStep.col > 0 && nextStep.col < len(mapArea[0])-1 {
+		count++
+		if count > 100000 {
+			break
+		}
+		nextStep = getNextStep(mapArea, nextStep)
+		key := strconv.Itoa(nextStep.row) + "," + strconv.Itoa(nextStep.col)
+		if !visited[key] {
+			visited[key] = true
+			mapArea[nextStep.row][nextStep.col] = "x"
+		}
+	}
+
+	fmt.Println("Part 2: ", obstacles)
+
+	// var missingObstacles []Location
+
+	// // a[0] - b[0] = -1
+	// // c[0] - d[0] = -1
+	// // a[1] - c[1] = 1
+	// // b[1] - d[1] = 1
+	// // 0,4   1,9
+	// // 6,3.   7,8
+
+	// // 3,2   4,7
+	// // 6,1   7,6.
+
+	// // 6,1 	 7,7.
+	// // 8,0 	 9,6
+
+	// // 3,2   4,7
+	// // 8,1.   9,6
+
+	// // 0,4   1,9
+	// // 8,3.   9,6
+
+	// // 6,1   7,8
+	// // 8,0   9,7.
+	// for i := 0; i < len(obstacles)-2; i++ {
+	// 	for j := i + 1; j < len(obstacles)-1; j++ {
+	// 		if obstacles[i].row-obstacles[j].row == -1 {
+	// 			for k := j + 1; k < len(obstacles); k++ {
+	// 				var missing Location
+	// 				// // Missing is a -> i is b, j is c, k is d
+	// 				// if obstacles[i].col-obstacles[k].col == 1 {
+	// 				// 	missing = Location{
+	// 				// 		row: obstacles[i].row - 1,
+	// 				// 		col: obstacles[j].col + 1,
+	// 				// 	}
+	// 				// 	missingObstacles = append(missingObstacles, missing)
+	// 				// 	continue
+	// 				// }
+
+	// 				// // Missing is b -> i is a, j is c, k is d
+	// 				// if obstacles[i].col-obstacles[j].col == 1 {
+	// 				// 	missing = Location{
+	// 				// 		row: obstacles[i].row + 1,
+	// 				// 		col: obstacles[k].col + 1,
+	// 				// 	}
+	// 				// 	missingObstacles = append(missingObstacles, missing)
+	// 				// 	continue
+	// 				// }
+
+	// 				// Missing is c -> i is a, j is b, k is d
+	// 				if obstacles[j].col-obstacles[k].col == 1 {
+	// 					fmt.Println("a", obstacles[i], "b", obstacles[j], "i", obstacles[k])
+	// 					missing = Location{
+	// 						row: obstacles[k].row - 1,
+	// 						col: obstacles[k].col - 1,
+	// 					}
+	// 					missingObstacles = append(missingObstacles, missing)
+	// 					continue
+	// 				}
+
+	// 				// Missing is d -> i is a, j is b, k is c
+	// 				if obstacles[i].col-obstacles[k].col == 1 {
+	// 					missing = Location{
+	// 						row: obstacles[k].row + 1,
+	// 						col: obstacles[j].col - 1,
+	// 					}
+	// 					missingObstacles = append(missingObstacles, missing)
+	// 					continue
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 }
 
 func getNextStep(mapArea [][]string, guardLocation GuardLocation) GuardLocation {
