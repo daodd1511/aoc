@@ -44,30 +44,53 @@ func solve(input []string) {
 			emptySpaces += current
 		}
 	}
+	// pendingMoveBlock := []int{len(diskMap) - 1, 0}
+	// tempAmount := 0
+	// for i := 0; i < len(diskMap); i++ {
+	// 	for j := 0; j < diskMap[i].freeSpace; j++ {
+	// 		if pendingMoveBlock[1] >= diskMap[pendingMoveBlock[0]].amount {
+	// 			diskMap = removeValue(diskMap, diskMap[pendingMoveBlock[0]])
+	// 			pendingMoveBlock[0]--
+	// 			pendingMoveBlock[1] = 1
+	// 			tempAmount = diskMap[pendingMoveBlock[0]].amount
+	// 		} else {
+	// 			pendingMoveBlock[1]++
+	// 			tempAmount--
+	// 		}
+	// 		if i >= len(diskMap)-1 {
+	// 			break
+	// 		}
+	// 		moveBlock := diskMap[pendingMoveBlock[0]]
+	// 		if moveBlock.id != diskMap[i].id {
+	// 			diskMap[i].movedBlocks = append(diskMap[i].movedBlocks, moveBlock.id)
+	// 		}
+	// 	}
+	// }
+	// diskMap[len(diskMap)-1].amount = tempAmount
+	for i := len(diskMap) - 1; i >= 0; i-- {
+		for j := 0; j < i; j++ {
+			if diskMap[j].freeSpace >= diskMap[i].amount {
+				value := []int{}
+				for j := 0; j < diskMap[i].amount; j++ {
+					value = append(value, diskMap[i].id)
+				}
 
-	pendingMoveBlock := []int{len(diskMap) - 1, 0}
-	tempAmount := 0
-	for i := 0; i < len(diskMap); i++ {
-		for j := 0; j < diskMap[i].freeSpace; j++ {
-			if pendingMoveBlock[1] >= diskMap[pendingMoveBlock[0]].amount {
-				diskMap = removeValue(diskMap, diskMap[pendingMoveBlock[0]])
-				pendingMoveBlock[0]--
-				pendingMoveBlock[1] = 1
-				tempAmount = diskMap[pendingMoveBlock[0]].amount
-			} else {
-				pendingMoveBlock[1]++
-				tempAmount--
-			}
-			if i >= len(diskMap)-1 {
-				break
-			}
-			moveBlock := diskMap[pendingMoveBlock[0]]
-			if moveBlock.id != diskMap[i].id {
-				diskMap[i].movedBlocks = append(diskMap[i].movedBlocks, moveBlock.id)
+				diskMap[j].movedBlocks = append(diskMap[j].movedBlocks, value...)
+				diskMap[j].freeSpace -= diskMap[i].amount
+
+				diskMap[i-1].freeSpace += diskMap[i].amount
+				if len(diskMap[i].movedBlocks) > 0 {
+					diskMap[i].amount = len(diskMap[i].movedBlocks)
+					diskMap[i].id = diskMap[i].movedBlocks[0]
+					diskMap[i].movedBlocks = []int{}
+				} else {
+					diskMap[i-1].freeSpace += diskMap[i].freeSpace
+					diskMap = removeValue(diskMap, diskMap[i])
+					break
+				}
 			}
 		}
 	}
-	diskMap[len(diskMap)-1].amount = tempAmount
 
 	result := 0
 	index := 0
@@ -78,9 +101,10 @@ func solve(input []string) {
 		}
 
 		for k := 0; k < len(diskMap[i].movedBlocks); k++ {
-			result += index * diskMap[i].movedBlocks[k]
+			result += (index) * diskMap[i].movedBlocks[k]
 			index++
 		}
+		index += diskMap[i].freeSpace
 	}
 	print(result)
 }
