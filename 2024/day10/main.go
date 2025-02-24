@@ -6,6 +6,13 @@ import (
 	"strconv"
 )
 
+type Part string
+
+const (
+	Part1 = "one"
+	Part2 = "two"
+)
+
 func main() {
 	input, err := fileUtils.ReadFileAsLines("./input.txt")
 	// input, err := fileUtils.ReadFileAsLines("./example.txt")
@@ -14,52 +21,79 @@ func main() {
 		return
 	}
 
-	solve(input)
+	solve(input, Part1)
+	solve(input, Part2)
 }
 
-func solve(input []string) {
+func solve(input []string, part Part) {
 	grid := convertToGrid(input)
-	result := 0
-	startPoints := make([][]int, 0)
-	for i := 0; i < len(grid); i++ {
-		for j := 0; j < len(grid[i]); j++ {
-			if grid[i][j] == "0" {
+	var result int
+
+	// Find all starting points (cells with "0")
+	var startPoints [][]int
+	for i, row := range grid {
+		for j, cell := range row {
+			if cell == "0" {
 				startPoints = append(startPoints, []int{i, j})
 			}
 		}
 	}
 
-	for i := 0; i < len(startPoints); i++ {
-		results := make([][]int, 0)
-		curr, _ := strconv.Atoi(grid[startPoints[i][0]][startPoints[i][1]])
-		nextCoord1 := []int{startPoints[i][0] + 1, startPoints[i][1]}
-		nextCoord2 := []int{startPoints[i][0] - 1, startPoints[i][1]}
-		nextCoord3 := []int{startPoints[i][0], startPoints[i][1] + 1}
-		nextCoord4 := []int{startPoints[i][0], startPoints[i][1] - 1}
-		result += traverse(grid, curr, nextCoord1, &results) + traverse(grid, curr, nextCoord2, &results) + traverse(grid, curr, nextCoord3, &results) + traverse(grid, curr, nextCoord4, &results)
+	// Process each starting point
+	for _, start := range startPoints {
+		var results [][]int
+		curr, err := strconv.Atoi(grid[start[0]][start[1]])
+		if err != nil {
+			continue
+		}
+
+		for _, nextCoord := range getNeighbors(start[0], start[1], len(grid), len(grid[0])) {
+			result += traverse(grid, curr, nextCoord, &results, part)
+		}
 	}
-	print(result)
+
+	fmt.Println("Part", part, ":", result)
 }
 
-func traverse(input [][]string, prev int, nextCoord []int, results *[][]int) int {
+// Returns valid neighbor coordinates
+func getNeighbors(row, col, rowMax, colMax int) [][]int {
+	neighbors := [][]int{
+		{row + 1, col}, {row - 1, col}, {row, col + 1}, {row, col - 1},
+	}
+
+	validNeighbors := make([][]int, 0, 4)
+	for _, n := range neighbors {
+		if n[0] >= 0 && n[0] < rowMax && n[1] >= 0 && n[1] < colMax {
+			validNeighbors = append(validNeighbors, n)
+		}
+	}
+	return validNeighbors
+}
+
+func traverse(grid [][]string, prev int, nextCoord []int, results *[][]int, part Part) int {
 	row, col := nextCoord[0], nextCoord[1]
-	if row < 0 || row >= len(input) || col < 0 || col >= len(input[0]) {
+
+	curVal, err := strconv.Atoi(grid[row][col])
+	if err != nil || curVal != prev+1 {
 		return 0
 	}
 
-	curVal, _ := strconv.Atoi(input[row][col])
-	if curVal == prev+1 {
-		if curVal == 9 {
+	if curVal == 9 {
+		if part == Part1 {
 			if !containsPair(*results, []int{row, col}) {
 				*results = append(*results, []int{row, col})
 				return 1
 			}
+		} else {
+			return 1
 		}
-
-		return traverse(input, curVal, []int{row + 1, col}, results) + traverse(input, curVal, []int{row - 1, col}, results) + traverse(input, curVal, []int{row, col + 1}, results) + traverse(input, curVal, []int{row, col - 1}, results)
-	} else {
-		return 0
 	}
+
+	total := 0
+	for _, neighbor := range getNeighbors(row, col, len(grid), len(grid[0])) {
+		total += traverse(grid, curVal, neighbor, results, part)
+	}
+	return total
 }
 
 func convertToGrid(input []string) [][]string {
